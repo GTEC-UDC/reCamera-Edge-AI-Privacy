@@ -1,0 +1,4 @@
+opencv-contrib-python>=4.8.0
+numpy>=1.22.0
+ultralytics>=8.0.0
+matplotlib>=3.5.0

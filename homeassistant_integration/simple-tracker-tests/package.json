@@ -1,0 +1,16 @@
+{
+  "name": "simple-tracker",
+  "version": "1.0.0",
+  "description": "A simple object tracking system",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "node-red": "^3.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

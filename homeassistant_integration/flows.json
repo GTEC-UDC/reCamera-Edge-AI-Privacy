@@ -1,0 +1,365 @@
+[
+    {
+        "id": "6d151d8e2b727607",
+        "type": "tab",
+        "label": "Flujo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c83376f4126944f4",
+        "type": "camera",
+        "z": "6d151d8e2b727607",
+        "option": 0,
+        "client": "42475ffb629d1e2f",
+        "audio": true,
+        "volume": 80,
+        "x": 140,
+        "y": 160,
+        "wires": [
+            [
+                "7057ee8976c1c00a"
+            ]
+        ]
+    },
+    {
+        "id": "7057ee8976c1c00a",
+        "type": "model",
+        "z": "6d151d8e2b727607",
+        "name": "",
+        "uri": "/usr/share/supervisor/models/yolo11n_detection_cv181x_int8.cvimodel",
+        "model": "YOLO11n Detection",
+        "tscore": "0.35",
+        "tiou": "0.4",
+        "debug": true,
+        "trace": false,
+        "counting": false,
+        "classes": "person,bicycle,car,motorcycle,airplane,bus,train,truck,boat,traffic light,fire hydrant,stop sign,parking meter,bench,bird,cat,dog,horse,sheep,cow,elephant,bear,zebra,giraffe,backpack,umbrella,handbag,tie,suitcase,frisbee,skis,snowboard,sports ball,kite,baseball bat,baseball glove,skateboard,surfboard,tennis racket,bottle,wine glass,cup,fork,knife,spoon,bowl,banana,apple,sandwich,orange,broccoli,carrot,hot dog,pizza,donut,cake,chair,couch,potted plant,bed,dining table,toilet,tv,laptop,mouse,remote,keyboard,cell phone,microwave,oven,toaster,sink,refrigerator,book,clock,vase,scissors,teddy bear,hair drier,toothbrush",
+        "splitter": "0,0,0,0",
+        "client": "42475ffb629d1e2f",
+        "x": 310,
+        "y": 160,
+        "wires": [
+            [
+                "9c6d79387778dfa2"
+            ]
+        ]
+    },
+    {
+        "id": "aae68259c9902fc0",
+        "type": "mqtt out",
+        "z": "6d151d8e2b727607",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "db3aa4d37c8b8ace",
+        "x": 1150,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "9c6d79387778dfa2",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Delete image",
+        "func": "delete msg.payload.data[\"image\"]\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 160,
+        "wires": [
+            [
+                "65dc74fb9d9dc61a",
+                "a4cdf869999aef1a"
+            ]
+        ]
+    },
+    {
+        "id": "559c4964cb361732",
+        "type": "http request",
+        "z": "6d151d8e2b727607",
+        "name": "queryDeviceInfo",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://localhost/api/deviceMgr/queryDeviceInfo",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 340,
+        "y": 40,
+        "wires": [
+            [
+                "c14a0475a454aa68",
+                "dae0766dbf9f78bf"
+            ]
+        ]
+    },
+    {
+        "id": "34ac839cb68fe432",
+        "type": "inject",
+        "z": "6d151d8e2b727607",
+        "name": "Start request",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 40,
+        "wires": [
+            [
+                "559c4964cb361732"
+            ]
+        ]
+    },
+    {
+        "id": "f240e54c875479c2",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Filter and set topics",
+        "func": "const sn = flow.get(\"serial_number\");\n\nif (msg.payload.name === \"create\") {\n    msg.topic = `recamera/${sn}/model_info`;\n    msg.retain = true;\n    msg.qos = 1;\n} else if (msg.payload.name === \"enabled\" || msg.payload.name === \"destroy\") {\n    return; // discard\n} else if (msg.payload.name === \"invoke\") {\n    msg.topic = `recamera/${sn}/detection`;\n} else if (msg.payload.name === \"fps\") {\n    msg.topic = `recamera/${sn}/fps`;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Wait for serial_number\nreturn new Promise((resolve) => {\n    function checkSerial() {\n        flow.get(\"serial_number\", (err, sn) => {\n            if (sn) {\n                setTimeout(() => resolve(sn), 500);  // additional delay\n            } else {\n                setTimeout(checkSerial, 100); // Retry every 100ms\n            }\n        });\n    }\n    checkSerial();\n});\n",
+        "finalize": "\nflow.set(\"serial_number\", undefined);\n",
+        "libs": [],
+        "x": 890,
+        "y": 160,
+        "wires": [
+            [
+                "aae68259c9902fc0"
+            ]
+        ]
+    },
+    {
+        "id": "c14a0475a454aa68",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Generate HA discovery",
+        "func": "// Retrieve common device properties from the incoming message\nvar sn = msg.payload.data.sn;\nvar deviceName = msg.payload.data.deviceName;\nvar cpu = msg.payload.data.cpu;\n\nflow.set(\"serial_number\", sn);\nflow.set(\"queryDeviceInfo\", msg);\n\n// Create a common device object for all entities\nvar device = {\n    \"identifiers\": [sn],\n    \"name\": deviceName,\n    \"model\": cpu,\n    \"manufacturer\": \"Seeed-Studio\"\n};\n\n// Build discovery configuration messages for each sensor\n\n// Note that the Node-RED MQTT client should be configured by hand to match the availability_topic.\n// The broker birth, close, and will messages should be set to the \"recamera/{sn}/status\" topic, with\n// \"online\" payload for birth and \"offline\" payload for the others.\n\n// 1. Camera Processed Frames Count Since Restart\nvar processedFramesCountMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_processed_frames_count/config\",\n    payload: {\n        \"name\": \"Camera Processed Frames Count Since Restart\",\n        \"state_topic\": \"recamera/\" + sn + \"/detection\",\n        \"value_template\": \"{{ value_json.data.count | int }}\",\n        \"unique_id\": sn + \"_processed_frames_count\",\n        \"device\": device,\n        \"state_class\": \"total_increasing\",\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n// 2. Camera Detected Labels\nvar detectedLabelsMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_detected_labels/config\",\n    payload: {\n        \"name\": \"Camera Detected Labels\",\n        \"state_topic\": \"recamera/\" + sn + \"/detection\",\n        \"value_template\": \"{{ value_json.data.labels | join(', ') }}\",\n        \"json_attributes_topic\": \"recamera/\" + sn + \"/detection\",\n        \"json_attributes_template\": \"{{ value_json.data | tojson }}\",\n        \"unique_id\": sn + \"_detected_labels\",\n        \"device\": device,\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n// 3. Camera Performance\nvar performanceMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_processing_delay/config\",\n    payload: {\n        \"name\": \"Camera Image Processing Delay\",\n        \"state_topic\": \"recamera/\" + sn + \"/detection\",\n        \"value_template\": \"{{ value_json.data.perf[0][0] + value_json.data.perf[0][1] + value_json.data.perf[0][2]  }}\",\n        \"device_class\": \"duration\",\n        \"unit_of_measurement\": \"ms\",\n        \"unique_id\": sn + \"_processing_delay\",\n        \"device\": device,\n        \"state_class\": \"measurement\",\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n\n// 4. Camera Configuration (with extra attributes)\nvar configurationMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_configuration/config\",\n    payload: {\n        \"name\": \"Camera Configuration\",\n        \"state_topic\": \"recamera/\" + sn + \"/camera_config\",\n        \"json_attributes_topic\": \"recamera/\" + sn + \"/camera_config\",\n        \"value_template\": \"{{ value_json.data.osVersion }}\",\n        \"unique_id\": sn + \"_configuration\",\n        \"device\": device,\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n\n// 5. Model Configuration\nvar modelInfoMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_model_info/config\",\n    payload: {\n        \"name\": \"Camera Model Information\",\n        \"state_topic\": \"recamera/\" + sn + \"/model_info\",\n        \"json_attributes_topic\": \"recamera/\" + sn + \"/model_info\",\n        \"value_template\": \"{{ value_json.data.model_name }}\",\n        \"unique_id\": sn + \"_model_info\",\n        \"device\": device,\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n// 6. Camera FPS\nvar fpsMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_fps/config\",\n    payload: {\n        \"name\": \"FPS\",\n        \"state_topic\": \"recamera/\" + sn + \"/fps\",\n        \"value_template\": \"{{ value_json.fps | float }}\",\n        \"device_class\": \"frequency\",\n        \"unit_of_measurement\": \"Hz\",\n        \"unique_id\": sn + \"_fps\",\n        \"device\": device,\n        \"state_class\": \"measurement\",\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n\n// 7. Camera Detected Labels\nvar labelsCountsMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_label_counts/config\",\n    payload: {\n        \"name\": \"Camera Detected Labels Counts\",\n        \"state_topic\": \"recamera/\" + sn + \"/detection\",\n        \"value_template\": \"{{ value_json.data.labels | length }}\",\n        \"json_attributes_topic\": \"recamera/\" + sn + \"/detection\",\n        \"json_attributes_template\": `\n            {% set ns = namespace(counts={}) %}\n            {% for label in (value_json.data.labels | sort) %}\n                {% set ns.counts = dict(ns.counts, **{label: ns.counts.get(label, 0) + 1}) %}\n            {% endfor %}\n            {{ {'label_counts': ns.counts} | tojson }}\n        `.replace(/\\n/g, ' '),\n        \"unique_id\": sn + \"_label_counts\",\n        \"device\": device,\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n\n// 8. Filtered Object Detections (tracked objects)\nvar filteredObjectsMsg = {\n    retain: true,\n    qos : 1,\n    topic: \"homeassistant/sensor/\" + sn + \"_filtered_objects/config\",\n    payload: {\n        \"name\": \"Filtered Object Detections\",\n        \"state_topic\": \"recamera/\" + sn + \"/filtered_detections\",\n        \"value_template\": \"{{ value_json.num_objects }}\",\n        \"json_attributes_topic\": \"recamera/\" + sn + \"/filtered_detections\",\n        \"json_attributes_template\": \"{{ value_json | tojson }}\",\n        \"unique_id\": sn + \"_filtered_objects\",\n        \"device\": device,\n        \"availability_topic\": \"recamera/\" + sn + \"/status\"\n    }\n};\n\n\n// Return an array with all messages so they are published one after the other\nreturn [[\n    processedFramesCountMsg,\n    detectedLabelsMsg,\n    performanceMsg,\n    configurationMsg,\n    modelInfoMsg,\n    fpsMsg,\n    labelsCountsMsg,\n    filteredObjectsMsg\n    ]];\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 40,
+        "wires": [
+            [
+                "aae68259c9902fc0"
+            ]
+        ]
+    },
+    {
+        "id": "65dc74fb9d9dc61a",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "FPS counter",
+        "func": "// --- Configuration ---\n// Define the interval in seconds to calculate FPS.\nconst INTERVAL_SECONDS = 10;\nconst INTERVAL_MS = INTERVAL_SECONDS * 1000;\n\n// --- Counter Logic ---\nif (msg.payload.name !== \"invoke\") {\n    // Let other messages pass through without modification.\n    return msg;\n}\n\n// Get the values from the node's context.\n// If they don't exist, initialize them to 0.\nlet messageCounter = context.get(\"messageCounter\") || 0;\nlet startTime = context.get(\"startTime\");\n\n// If startTime is not defined, it's the first message of a new interval.\nif (!startTime) {\n    startTime = Date.now();\n    context.set(\"startTime\", startTime);\n    // Reset the counter just in case.\n    messageCounter = 0;\n}\n\n// Increment the counter for each incoming message.\nmessageCounter++;\ncontext.set(\"messageCounter\", messageCounter);\n\n// Check if the interval time has passed.\nconst now = Date.now();\nconst elapsedTime = now - startTime;\n\nif (elapsedTime >= INTERVAL_MS) {\n    // The interval has ended. Time to calculate and send.\n    \n    // Calculate the actual FPS during this period.\n    const actualSeconds = elapsedTime / 1000;\n    const fps = messageCounter / actualSeconds;\n\n    // Add the calculated data to the message payload.\n    let fpsMsg = {\n        topic: \"tbd\",\n        payload: {\n            \"name\": \"fps\",\n            \"fps\": fps\n        }\n    };\n\n    // Reset the counters for the next interval.\n    context.set(\"startTime\", now); // The new start time is now.\n    context.set(\"messageCounter\", 0); // Reset the message counter.\n    \n    // Send the message with the FPS data.\n\n    return [[msg, fpsMsg]];\n\n} else {\n    // The interval has not yet ended.\n    // Let other messages pass through without modification.\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "process",
+                "module": "process"
+            }
+        ],
+        "x": 690,
+        "y": 160,
+        "wires": [
+            [
+                "f240e54c875479c2"
+            ]
+        ]
+    },
+    {
+        "id": "1ff51206dc585fb7",
+        "type": "debug",
+        "z": "6d151d8e2b727607",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 360,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "cef98fed0e7932c8",
+        "type": "catch",
+        "z": "6d151d8e2b727607",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 130,
+        "y": 340,
+        "wires": [
+            [
+                "1ff51206dc585fb7"
+            ]
+        ]
+    },
+    {
+        "id": "8b267b4cec5844e9",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Camera Configuration",
+        "func": "// Retrieve common device properties from the incoming message\nvar sn = msg.payload.data.sn;\n\nmsg.topic = `recamera/${sn}/camera_config`;\nmsg.retain = true;\nmsg.qos = 1;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 100,
+        "wires": [
+            [
+                "aae68259c9902fc0"
+            ]
+        ]
+    },
+    {
+        "id": "dae0766dbf9f78bf",
+        "type": "delay",
+        "z": "6d151d8e2b727607",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 520,
+        "y": 100,
+        "wires": [
+            [
+                "8b267b4cec5844e9"
+            ]
+        ]
+    },
+    {
+        "id": "edf877ec502328de",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Filter repeated messages",
+        "func": "// This function only sends the messages where the count of objects has changed.\nconst sn = flow.get(\"serial_number\");\nmsg.topic = `recamera/${sn}/filtered_detections`;\n\n// Get the previous message from the context\nconst prevMsg = context.get('prevMsg');\n// Save the current message to the context\ncontext.set('prevMsg', msg);\n\nif (!prevMsg) {\n    return msg;\n}\n\n// Check if the number of objects has changed\nconst prevNumObjects = prevMsg.payload.num_objects;\nconst currentNumObjects = msg.payload.num_objects;\nif (prevNumObjects !== currentNumObjects) {\n    return msg;\n}\n\n// Check if the class counts have changed.\nconst prevClassCounts = prevMsg.payload.class_counts;\nconst currentClassCounts = msg.payload.class_counts;\n// Compare each field (label) of the class counts\nfor (const label in prevClassCounts) {\n    if (prevClassCounts[label] !== currentClassCounts[label]) {\n        return msg;\n    }\n}\n// Ensure there are no additional fields in the class counts\nfor (const label in currentClassCounts) {\n    if (!prevClassCounts.hasOwnProperty(label)) {\n        return msg;\n    }\n}\n\nreturn;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 240,
+        "wires": [
+            [
+                "aae68259c9902fc0"
+            ]
+        ]
+    },
+    {
+        "id": "a4cdf869999aef1a",
+        "type": "function",
+        "z": "6d151d8e2b727607",
+        "name": "Tracker",
+        "func": "// Check if the message is an invoke\nif (msg.payload.name !== \"invoke\" || !msg.payload.data) {\n    return;\n}\n\n// Configuration parameters (adjustable via environment variables or settings)\nconst MIN_CONSECUTIVE_MATCHES = 5; // Minimum number of consecutive matches requiredto activate tracking of objects\nconst ACTIVATION_THRESHOLD = 50; // Threshold to activate tracking of objects\nconst DEACTIVATION_THRESHOLD = 20; // Threshold to deactivate tracking of objects\nconst MIN_DEACTIVATION_TIME = 1000; // Minimum time in milliseconds that the objects will live when they are not detected\nconst MAX_DEACTIVATION_TIME = 5000; // Maximum time in milliseconds that the objects will live when they are not detected\nconst MAX_DISTANCE = 100;         // Max pixel distance for association\n\n// Helper function to clamp value between min and max\nconst clamp = (value, min, max) => Math.min(Math.max(value, min), max);\n\nclass TrackedObject {\n    constructor(classLabel, initialConfidence, position, timestamp) {\n        this.classLabel = classLabel;\n        this.lastPosition = position;\n        this.lastSeen = timestamp;\n\n        this.meanConfidence = initialConfidence;\n        this.consecutiveMisses = 0;\n        this.consecutiveMatches = 0;\n\n        this.isActive = false;\n    }\n\n\n    update(confidence, position, timestamp) {\n        this.meanConfidence = (7 * this.meanConfidence + confidence) / 8;\n        this.lastPosition = position;\n        this.lastSeen = timestamp;\n        this.consecutiveMisses = 0; // Reset miss counter on successful detection\n        this.consecutiveMatches++;\n    }\n\n    missedDetection(timestamp) {\n        this.consecutiveMisses++;\n        this.meanConfidence = (7 * this.meanConfidence + 0) / 8;\n        this.consecutiveMatches = 0;\n    }\n\n    activationMetric() {\n        if (this.consecutiveMatches < MIN_CONSECUTIVE_MATCHES) {\n            return 0.0;\n        }\n        // Consecutive matches\n        const consecutiveMatchesFactor = 1 + this.consecutiveMatches * 0.1;\n        // Penalize consecutive misses\n        const missedPenalty = Math.max(0, 1 - this.consecutiveMisses * 0.1);\n\n        return this.meanConfidence * consecutiveMatchesFactor * missedPenalty;\n    }\n\n    deactivationMetric(currentTimestamp) {\n        const timeSinceLastDetection = (currentTimestamp - this.lastSeen);\n        if (timeSinceLastDetection < MIN_DEACTIVATION_TIME) {\n            return 100.0;\n        } else {\n            const timeRatio = (timeSinceLastDetection - MIN_DEACTIVATION_TIME) / (MAX_DEACTIVATION_TIME - MIN_DEACTIVATION_TIME);\n            // Consecutive matches\n            const consecutiveMatchesFactor = 1 + this.consecutiveMatches * 0.1;\n            // Penalize consecutive misses\n            const missedPenalty = Math.max(0, 1 - this.consecutiveMisses * 0.1);\n            return this.meanConfidence * (1 - timeRatio) * consecutiveMatchesFactor * missedPenalty;\n        }\n    }\n}\n\n// Initialize context storage if not exists\nconst trackedObjects = context.get('trackedObjects') || new Map();\n\n// Get current frame data\nconst currentData = msg.payload.data;\nconst currentTime = Date.now();\n\n// 1. Simple cleanup - remove very old objects\nfor (const [key, obj] of trackedObjects) {\n    if (currentTime - obj.lastSeen > MAX_DEACTIVATION_TIME) {\n        trackedObjects.delete(key);\n    }\n}\n\n// Copy tracked objects to avoid modifying during iteration\nlet unmatched = new Set(trackedObjects.keys());\n\n// 2. Process current detections\ncurrentData.labels.forEach((label, index) => {\n    const [x, y, w, h, conf, classId] = currentData.boxes[index];\n    const position = { x: x + w / 2, y: y + h / 2 }; // Center point\n    const confidence = conf;\n\n    // Find best match in tracked objects\n    let bestMatch = null;\n    let minDistance = Infinity;\n\n    for (const [key, obj] of trackedObjects) {\n        if (obj.classLabel === label && unmatched.has(key)) {\n            // Calculate distance to last known position\n            const lastPos = obj.lastPosition;\n            const distance = Math.hypot(\n                position.x - lastPos.x,\n                position.y - lastPos.y\n            );\n\n            if (distance < MAX_DISTANCE && distance < minDistance) {\n                minDistance = distance;\n                bestMatch = key;\n            }\n        }\n    }\n\n    if (bestMatch && label === \"person\") {\n        console.log(\"minDistance\", minDistance);\n    }\n\n    if (bestMatch) {\n        // Update existing tracked object\n        const obj = trackedObjects.get(bestMatch);\n        obj.update(confidence, position, currentTime);\n        unmatched.delete(bestMatch);\n\n        // Check activation\n        if (!obj.isActive && obj.activationMetric() >= ACTIVATION_THRESHOLD) {\n            obj.isActive = true;\n        }\n    } else {\n        // Create new tracked object\n        const key = `${label}-${currentTime}-${index}`;\n        trackedObjects.set(key, new TrackedObject(\n            label,\n            confidence,\n            position,\n            currentTime\n        ));\n    }\n});\n\n// 3. Handle unmatched objects (missed detections)\nunmatched.forEach(key => {\n    const obj = trackedObjects.get(key);\n    obj.missedDetection(currentTime);\n});\n\n// 4. Update activation states and calculate counts\nlet numObjects = 0;\nconst classCounts = {};\nlet objectsToRemove = [];\n\nfor (const [key, obj] of trackedObjects) {\n    // Check deactivation for active objects\n    if (obj.isActive) {\n        const deactMetric = obj.deactivationMetric(currentTime);\n        if (deactMetric < DEACTIVATION_THRESHOLD) {\n            obj.isActive = false;\n            objectsToRemove.push(key);\n        }\n    }\n\n    // Update counts for active objects\n    if (obj.isActive) {\n        classCounts[obj.classLabel] = (classCounts[obj.classLabel] || 0) + 1;\n        numObjects++;\n    }\n}\n\n// Remove deactivated objects\nobjectsToRemove.forEach(key => trackedObjects.delete(key));\n\n// Save updated tracking state\ncontext.set('trackedObjects', trackedObjects);\n\n// Prepare output message\nmsg.payload = {\n    timestamp: currentTime,\n    num_objects: numObjects,\n    class_counts: classCounts,\n    active_objects: Array.from(trackedObjects.values()).filter(obj => obj.isActive).map(obj => ({\n        classLabel: obj.classLabel,\n        meanConfidence: obj.meanConfidence,\n        lastPosition: [obj.lastPosition.x, obj.lastPosition.y],\n        numDetections: obj.totalUpdates,\n        missedDetections: obj.consecutiveMisses\n    }))\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 240,
+        "wires": [
+            [
+                "edf877ec502328de"
+            ]
+        ]
+    },
+    {
+        "id": "42475ffb629d1e2f",
+        "type": "sscma",
+        "host": "localhost",
+        "mqttport": "1883",
+        "apiport": "80",
+        "clientid": "recamera",
+        "username": "",
+        "password": ""
+    },
+    {
+        "id": "db3aa4d37c8b8ace",
+        "type": "mqtt-broker",
+        "name": "HomeAssistant WiFi",
+        "broker": "192.168.1.139",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "recamera/123456789012345678/status",
+        "birthQos": "2",
+        "birthRetain": "true",
+        "birthPayload": "online",
+        "birthMsg": {},
+        "closeTopic": "recamera/123456789012345678/status",
+        "closeQos": "2",
+        "closeRetain": "true",
+        "closePayload": "offline",
+        "closeMsg": {},
+        "willTopic": "recamera/123456789012345678/status",
+        "willQos": "2",
+        "willRetain": "true",
+        "willPayload": "offline",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

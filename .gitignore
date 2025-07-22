@@ -1,0 +1,111 @@
+# Build directories
+build/
+cmake-build*/
+.build/
+
+# Compiled Object files
+*.o
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Video files (typically large)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+
+# Model files (can be large)
+*.onnx
+*.pt
+*.pth
+*.cvimodel
+*.model
+
+
+# Backup files
+*.bak
+*.orig
+*.tmp
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# External dependencies
+external/YOLOs-CPP/
+external/sscma-example-sg200x/
+
+# Test outputs
+test_output/
+output/
+results/
+
+# Configuration files that might contain secrets
+config.json
+settings.json
+
+# Documentation build
+docs/_build/
+docs/doxygen/
+
+# Temporary files
+*.tmp
+*.temp
