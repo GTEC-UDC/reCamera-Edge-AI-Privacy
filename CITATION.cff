@@ -4,6 +4,7 @@ message: >-
   If you use this project, please cite it using the metadata
   from this file.
 type: software
+doi: 10.5281/zenodo.16355557
 authors:
   - orcid: 'https://orcid.org/0000-0001-5513-7969'
     affiliation: 'CITIC Research Center, University of A Coruña'
