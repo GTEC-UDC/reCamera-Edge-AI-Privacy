@@ -121,22 +121,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you use this project, please cite it using the following BibTeX entry:
 
 ```bibtex
-@software{carro_lagoa_2025_16355558,
-  author       = {Carro Lagoa, Ángel and
-                  Domínguez Bolaño, Tomás and
-                  Barral Vales, Valentín and
-                  Escudero, Carlos J. and
-                  García-Naya, José A.},
-  title        = {reCamera Edge AI Privacy Project},
-  month        = jul,
-  year         = 2025,
-  publisher    = {Zenodo},
-  version      = {v2025-07-23},
-  doi          = {10.5281/zenodo.16355558},
-  url          = {https://doi.org/10.5281/zenodo.16355558},
+@software{Carro_Lagoa_reCamera_Edge_AI,
+author = {Carro Lagoa, Ángel and Domínguez Bolaño, Tomás and Barral Vales, Valentín and Escudero, Carlos J. and García-Naya, José A.},
+doi = {10.5281/zenodo.16355557},
+license = {MIT},
+title = {{reCamera Edge AI Privacy Project}},
+url = {https://github.com/GTEC-UDC/reCamera-Edge-AI-Privacy}
 }
 ```
-
 
 
 ## Acknowledgements
