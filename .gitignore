@@ -1,3 +1,7 @@
+# Symbolic links from external repositories
+video_anonymizer/cpp/external/YOLOs-CPP
+video_anonymizer/cpp/external/sscma-example-sg200x
+
 # Build directories
 build/
 cmake-build*/
